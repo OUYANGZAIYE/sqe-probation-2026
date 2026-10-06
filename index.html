@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>以 AI 为杠杆的供应商质量管理实践 · 欧阳光试用期工作总结</title>
+<link rel="icon" type="image/png" href="assets/logo/ninebot-dark.png">
+<style>
+:root{
+  --stage-bg:#dfe7f2; --slide-bg:#dfe7f2;
+  --ink:#131c2c; --ink-soft:rgba(19,28,44,.66); --ink-faint:rgba(19,28,44,.45);
+  --accent:#2563eb; --accent2:#7c3aed;
+  --glass:linear-gradient(135deg,rgba(255,255,255,.62),rgba(255,255,255,.30));
+  --glass-line:rgba(255,255,255,.75);
+  --radius:26px; --ease:cubic-bezier(.22,.8,.28,1);
+}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg);font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .45s var(--ease);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+canvas,svg,img{max-width:100%;max-height:100%;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;transition-duration:.15s!important;}}
+
+/* 环境 */
+.ambient{position:absolute;inset:0;background:
+  radial-gradient(1100px 750px at 82% 8%, rgba(147,197,253,.55), transparent 62%),
+  radial-gradient(1000px 700px at 8% 92%, rgba(196,181,253,.5), transparent 60%),
+  radial-gradient(800px 520px at 55% 45%, rgba(110,231,183,.25), transparent 65%),
+  linear-gradient(160deg,#eef3fa 0%,#e2e9f4 100%);}
+.orb{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;}
+.orb.o1{width:340px;height:340px;left:11%;top:14%;background:radial-gradient(circle at 30% 30%,#fff,#bcd4f5);animation:float 10s ease-in-out infinite alternate;}
+.orb.o2{width:230px;height:230px;right:12%;bottom:14%;background:radial-gradient(circle at 30% 30%,#fff,#d9c9f7);animation:float 13s ease-in-out infinite alternate-reverse;}
+@keyframes float{from{transform:translateY(-26px)}to{transform:translateY(26px)}}
+
+/* 品牌 */
+.wordmark{position:absolute;left:64px;top:48px;display:flex;align-items:center;gap:18px;z-index:6;}
+.wordmark .nine{font-weight:900;font-size:42px;line-height:1;letter-spacing:2px;}
+.wordmark .nine em{font-style:normal;color:var(--accent);}
+.wordmark .sub{font-size:19px;line-height:1.4;color:var(--ink-faint);border-left:1px solid rgba(19,28,44,.25);padding-left:18px;letter-spacing:3px;}
+.wordmark img{display:block;height:80px;width:auto;}
+.footer{position:absolute;left:64px;right:64px;bottom:34px;display:flex;justify-content:space-between;align-items:center;z-index:6;font-size:19px;color:var(--ink-faint);letter-spacing:2px;pointer-events:none;}
+.footer .dot{color:var(--accent);}
+
+/* 通用组件 */
+.glass{background:var(--glass);border:1px solid var(--glass-line);border-radius:var(--radius);
+  box-shadow:0 22px 60px rgba(31,42,61,.14), inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(20px);}
+.pad{padding:44px 52px;}
+.chap{display:inline-block;font-size:30px;font-weight:700;letter-spacing:6px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));padding:12px 36px;border-radius:999px;margin-bottom:22px;box-shadow:0 10px 26px rgba(37,99,235,.30);}
+h2.ht{font-size:54px;font-weight:900;line-height:1.25;margin:0 0 10px;letter-spacing:1px;}
+.ht .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.subline{font-size:23px;color:var(--ink-soft);letter-spacing:1px;}
+.content{position:absolute;left:150px;right:150px;top:170px;bottom:110px;}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .5s var(--ease),transform .5s var(--ease);}
+.rv.on{opacity:1;transform:none;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:34px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;}
+.stat{padding:34px 38px;text-align:left;}
+.stat .num{font-size:58px;font-weight:900;color:var(--accent);line-height:1.1;}
+.stat .lab{font-size:22px;color:var(--ink-soft);margin-top:8px;line-height:1.5;}
+.card h3{font-size:27px;margin:0 0 12px;}
+.card p,.card li{font-size:21.5px;color:var(--ink-soft);line-height:1.7;margin:0;}
+ul.tick{list-style:none;padding:0;margin:8px 0 0;}
+ul.tick li{padding-left:28px;position:relative;margin-bottom:8px;}
+ul.tick li::before{content:'';position:absolute;left:0;top:11px;width:12px;height:12px;border-radius:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+
+/* 序章 */
+#prologue .intro-hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:22px;font-weight:300;color:var(--ink-faint);letter-spacing:6px;z-index:5;animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+#prologue canvas{position:absolute;inset:0;z-index:3;}
+
+/* 封面 */
+.cover-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1400px;padding:100px 120px;text-align:center;z-index:4;}
+.cover-wrap .kicker{font-size:24px;color:var(--accent);letter-spacing:12px;margin-bottom:44px;}
+h1.title{font-size:78px;font-weight:900;line-height:1.35;margin:0 0 34px;letter-spacing:2px;}
+h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.meta{font-size:26px;font-weight:300;color:var(--ink-soft);line-height:1.8;letter-spacing:2px;}
+.enter{display:inline-block;margin-top:56px;padding:20px 74px;border-radius:999px;border:1px solid rgba(255,255,255,.8);
+  font-size:26px;font-weight:500;color:#fff;letter-spacing:8px;cursor:pointer;transition:transform .2s;user-select:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 30px rgba(37,99,235,.35);}
+.enter:hover{transform:translateY(-3px);}
+
+/* 流程推进器 */
+.flow{display:flex;gap:26px;margin-top:10px;}
+.fnode{flex:1;padding:26px 24px;text-align:center;cursor:pointer;user-select:none;transition:transform .2s, box-shadow .2s;}
+.fnode .no{display:inline-block;width:52px;height:52px;line-height:52px;border-radius:50%;background:rgba(37,99,235,.12);color:var(--accent);font-size:26px;font-weight:900;margin-bottom:12px;}
+.fnode .ft{font-size:24px;font-weight:700;}
+.fnode.cur{transform:translateY(-8px);box-shadow:0 26px 60px rgba(37,99,235,.28);}
+.fnode.cur .no{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.fdetail{margin-top:30px;padding:36px 44px;min-height:190px;}
+.fdetail h4{font-size:27px;margin:0 0 10px;color:var(--accent);}
+.fdetail p{font-size:22px;color:var(--ink-soft);line-height:1.7;margin:0;}
+
+/* 对照表 */
+.cmp{width:100%;border-collapse:separate;border-spacing:0 14px;}
+.cmp th{font-size:22px;color:var(--ink-faint);font-weight:500;text-align:left;padding:0 24px;letter-spacing:2px;}
+.cmp td{padding:20px 24px;font-size:21px;line-height:1.55;color:var(--ink-soft);background:rgba(255,255,255,.42);}
+.cmp td:first-child{border-radius:16px 0 0 16px;font-weight:700;color:var(--ink);width:250px;}
+.cmp td:last-child{border-radius:0 16px 16px 0;}
+.cmp td b{color:var(--accent);}
+
+/* 判定揭示 */
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;}
+.vitem{padding:22px 28px;cursor:pointer;user-select:none;transition:box-shadow .2s;}
+.vitem .q{font-size:22px;font-weight:700;}
+.vitem .a{display:block;margin-top:8px;font-size:20.5px;color:var(--accent);line-height:1.55;}
+.vitem:not(.open) .a{display:none;}
+.vitem.open{box-shadow:0 20px 50px rgba(37,99,235,.22);}
+.vhint{font-size:19px;color:var(--ink-faint);margin-top:14px;}
+
+/* 游戏 */
+.game{display:grid;grid-template-columns:760px 1fr;gap:36px;margin-top:6px;}
+.gcard{padding:40px 44px;}
+.gq{font-size:25px;font-weight:700;line-height:1.55;min-height:104px;}
+.gopts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
+.gopt{padding:15px 22px;border-radius:16px;border:1.5px solid rgba(37,99,235,.3);font-size:21px;font-weight:700;cursor:pointer;user-select:none;background:rgba(255,255,255,.5);transition:all .15s;}
+.gopt:hover{border-color:var(--accent);transform:translateY(-2px);}
+.gopt.sel{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+.gopt.right{background:rgba(16,185,129,.16);border-color:#10b981;color:#065f46;}
+.gopt.wrong{background:rgba(239,68,68,.12);border-color:#ef4444;color:#991b1b;}
+.gopt.lock{pointer-events:none;}
+.gbtns{margin-top:18px;display:flex;gap:18px;align-items:center;}
+.gbtn{padding:12px 38px;border-radius:999px;font-size:21px;font-weight:700;letter-spacing:4px;cursor:pointer;user-select:none;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;}
+.gbtn.ghost{background:rgba(255,255,255,.55);color:var(--accent);border:1.5px solid rgba(37,99,235,.35);}
+.gscore{font-size:21px;color:var(--ink-faint);margin-left:auto;}
+.gfeed{margin-top:16px;padding:14px 22px;border-radius:16px;font-size:20px;line-height:1.55;display:none;}
+.gfeed.ok{display:block;background:rgba(16,185,129,.14);color:#065f46;}
+.gfeed.no{display:block;background:rgba(239,68,68,.1);color:#991b1b;}
+.gprog{display:flex;gap:10px;margin-bottom:20px;}
+.gdot{width:34px;height:8px;border-radius:4px;background:rgba(19,28,44,.14);}
+.gdot.done{background:var(--accent);}
+.gside{padding:36px 40px;}
+.gside h3{font-size:25px;margin:0 0 16px;color:var(--accent);}
+.gside li{margin-bottom:14px;}
+.gresult{text-align:center;padding:30px 0;}
+.gresult .big{font-size:60px;font-weight:900;color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><div class="deck-stage" id="stage">
+
+<!-- 0 粒子序章 -->
+<section class="slide active" id="prologue">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <canvas id="intro" width="1920" height="1080"></canvas>
+  <div class="intro-hint">点 击 散 开 · 再 次 聚 成 后 进 入（空格跳过）</div>
+</section>
+
+<!-- 1 封面 -->
+<section class="slide" id="cover">
+  <div class="ambient"></div><div class="orb o1"></div><div class="orb o2"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="cover-wrap glass">
+    <div class="kicker">试 用 期 工 作 总 结</div>
+    <h1 class="title">以 <span class="hl">AI</span> 为杠杆的<br>供应商质量管理实践</h1>
+    <div class="meta">欧阳光 · 助理SQE ｜ 供应链质量工程部 · 三电组<br>带教师父：王可欣 ｜ 2026.05 — 2026.10</div>
+    <div class="enter" data-ui id="enterBtn">进 入 汇 报</div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span id="pg-cover"></span></div>
+</section>
+
+<!-- 2 汇报框架 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">CONTENTS</div>
+    <h2 class="ht rv">汇报框架</h2>
+    <p class="subline rv">入职 2026.05 · 三电组 ｜ 铅酸计量板＋65A 平台化三款 · 华瑞 / 易宏</p>
+    <div class="grid3" style="margin-top:40px;">
+      <div class="glass pad card rv"><h3><span style="color:var(--accent)">01</span> 岗位与融入</h3><p>三电组 · 铅酸计量板 SQE 的角色与学习路径</p></div>
+      <div class="glass pad card rv"><h3><span style="color:var(--accent)">02</span> 专项攻坚</h3><p>3MIS 归因 · 解析 SOP · 进水验证 · 工艺对比</p></div>
+      <div class="glass pad card rv"><h3><span style="color:var(--accent)">03</span> AI 赋能</h3><p>知识库 · 飞书机器人「Q野」· 数据自动化工作流</p></div>
+    </div>
+    <div class="grid2" style="margin-top:30px;grid-template-columns:1fr 1fr;">
+      <div class="glass pad card rv"><h3><span style="color:var(--accent)">04</span> 建设性意见</h3><p>基于 5,700+ 条解析数据的供应商管理六条建议</p></div>
+      <div class="glass pad card rv"><h3><span style="color:var(--accent)">05</span> 反思与规划</h3><p>短板认知与 2026 H2 行动计划</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 3 岗位与融入 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">岗位与融入 · 01</div>
+    <h2 class="ht rv">我的岗位——三电组 · <span class="hl">铅酸计量板 SQE</span></h2>
+    <div class="grid2" style="margin-top:26px;">
+      <div class="glass pad card rv">
+        <h3>主产品：铅酸计量板</h3>
+        <ul class="tick">
+          <li>GB42295 版 V1.4 · V4.2 电摩通用版 · 55A 大电流版 · 65A 平台化三款</li>
+          <li>核心功能：电压 / 电流采样计量 + 单线通讯 + 整车电量显示</li>
+          <li>对应法规 GB42295（电动自行车用锂电/铅酸电池计量）要求</li>
+        </ul>
+      </div>
+      <div class="glass pad card rv">
+        <h3>负责供应商（2 家）与职责</h3>
+        <ul class="tick">
+          <li><b>易宏</b>（主供 · 全系列）／ <b>华瑞</b>（二供 · 单料号 0002.51 标准款 40A）</li>
+          <li>IQC 来料把关 · 过程审核与 PPAP · 售后 3MIS / NTF 解析 · 二供导入</li>
+          <li>两供应商年售后解析台账 <b>5,700+ 条</b>，覆盖电自 / 电摩主力车型</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:30px;">
+      <div class="glass pad stat rv"><div class="num">0.220%</div><div class="lab">2026 整体 3MIS</div></div>
+      <div class="glass pad stat rv"><div class="num">0.150% <span style="font-size:26px;color:var(--ink-faint)">→</span> 0.332%</div><div class="lab">10月 → 6月，翻倍上升</div></div>
+      <div class="glass pad stat rv"><div class="num">80.2%</div><div class="lab">四代板 0001B1 占比</div></div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 4 带教四步 流程推进器 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">岗位与融入 · 01</div>
+    <h2 class="ht rv">师父带领下：四步完成 <span class="hl">SQE 供应商质量入门</span></h2>
+    <p class="subline rv">王可欣师父的带教方式：从「跟着看」→「一起做」→「独立干」——点击节点查看每一步</p>
+    <div class="flow rv" data-ui id="flow" style="margin-top:34px;">
+      <div class="glass fnode cur" data-i="0"><span class="no">①</span><div class="ft">SQE 角色入门</div></div>
+      <div class="glass fnode" data-i="1"><span class="no">②</span><div class="ft">核心流程掌握</div></div>
+      <div class="glass fnode" data-i="2"><span class="no">③</span><div class="ft">品类专业技能</div></div>
+      <div class="glass fnode" data-i="3"><span class="no">④</span><div class="ft">独立实战闭环</div></div>
+    </div>
+    <div class="glass fdetail rv" data-ui id="fdetail">
+      <h4 id="fd-t"></h4><p id="fd-p"></p>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 5 3MIS 归因 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">专项攻坚 · 02</div>
+    <h2 class="ht rv">3MIS 上升归因分析——<span class="hl">翻倍恶化中的真实病灶</span></h2>
+    <div class="grid3" style="grid-template-columns:repeat(4,1fr);gap:24px;margin-top:24px;">
+      <div class="glass pad stat rv"><div class="num">5,564</div><div class="lab">3MIS 工单<br>（25.10–26.06）</div></div>
+      <div class="glass pad stat rv"><div class="num">0.332%</div><div class="lab">6月 3MIS<br>↑121% vs 10月</div></div>
+      <div class="glass pad stat rv"><div class="num">80.2%</div><div class="lab">四代板 0001B1 占比</div></div>
+      <div class="glass pad stat rv"><div class="num">42.2%</div><div class="lab">广东省占比<br>（2,347 单）</div></div>
+    </div>
+    <div class="grid3" style="margin-top:26px;">
+      <div class="glass pad card rv"><h3>① 故障类型双驱动</h3><ul class="tick"><li>电量跳变 39.9% 居首</li><li>E18 通讯异常 34.7% · 无电量显示 14.0%</li><li>三类同步上升 → 系统性问题</li></ul></div>
+      <div class="glass pad card rv"><h3>② 供应商分化明显</h3><ul class="tick"><li>易宏通讯类故障偏高：E18 占 54% · 无显示 59%</li><li>华瑞电量跳变 48% 接近易宏</li><li>华瑞份额 10月 25% → 3月 50%</li></ul></div>
+      <div class="glass pad card rv"><h3>③ 典型早期失效特征</h3><ul class="tick"><li>中位故障里程 688km，37% 工单 500km 内失效</li><li>各产线同步上升 → 来料问题</li><li>峰值批次 W12–W14（26.03）</li></ul></div>
+    </div>
+    <div class="glass pad card rv" style="margin-top:26px;"><p><b style="color:var(--accent)">产出：</b>3MIS 上升归因报告（12 维度交叉）＋ P0 建议：四代板来料审核 · 易宏通讯专项 · 固件 0426 排查 · 广东区域分析</p></div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 6 X 分型判断挑战（游戏） -->
+<section class="slide" id="game">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">专项攻坚 · 02</div>
+    <h2 class="ht rv">失效件解析 SOP——<span class="hl">X 分型判断挑战</span></h2>
+    <p class="subline rv">先记住五类定性：X1 硬件真实故障 · X2 单线通讯异常 · X3 NTF 无法复现 · X4 非计量板误判 · X5 标签缺失。来试试你会不会判？</p>
+    <div class="game rv" data-ui id="game">
+      <div class="glass gcard">
+        <div class="gprog" id="gprog"></div>
+        <div id="gmain">
+          <div class="gq" id="gq"></div>
+          <div class="gopts" id="gopts"></div>
+          <div class="gfeed" id="gfeed"></div>
+          <div class="gbtns">
+            <button class="gbtn" id="gnext" style="display:none">下一题</button>
+            <button class="gbtn ghost" id="gretry" style="display:none">重新挑战</button>
+            <span class="gscore" id="gscore">得分 0 / 5</span>
+          </div>
+        </div>
+        <div id="gresult" class="gresult" style="display:none">
+          <div class="big" id="gfinal"></div>
+          <p style="font-size:22px;color:var(--ink-soft);margin:18px 0 26px;">记住核心原则：NTF 判定三重仲裁——上位机 PASS ＋ 实车验证 ＋ 物理检查，<b>实车结果是最终仲裁</b>，杜绝「PASS 即放行」的误判。</p>
+          <button class="gbtn" id="grestart">再 来 一 局</button>
+        </div>
+      </div>
+      <div class="glass gside">
+        <h3>版本迭代 V1.0 → V1.3</h3>
+        <ul class="tick">
+          <li>增加上位机 PASS/NG 判定门 · NTF 确认环节 · 高温高湿测试</li>
+          <li>按工单地点区分测试路径</li>
+          <li>AI 辅助流程图与文档生成，改一处逻辑即自动重出版本</li>
+        </ul>
+        <h3 style="margin-top:26px">落地：8 项改善待办（节选）</h3>
+        <ul class="tick">
+          <li><b>P0</b> 华瑞稳压电源每日校准记录（魏晓杰）</li>
+          <li><b>P0</b> 推进易宏取消 4 秒等待机制（是国伟）</li>
+          <li><b>P0</b> 一测增加 0 点校准 / 二测新校准点 0A·15A·45A</li>
+          <li><b>P1</b> 机台一致性分析（15 台）· 100pcs 三温测试</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 7 进水验证实验 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">专项攻坚 · 02</div>
+    <h2 class="ht rv">接插口进水验证实验——<span class="hl">NTF「不充电/跳变」根因定位</span></h2>
+    <div class="grid3" style="grid-template-columns:repeat(4,1fr);gap:24px;margin-top:22px;">
+      <div class="glass pad stat rv"><div class="num">72h×40℃</div><div class="lab">恒温双槽浸泡 · 盐水＋红墨水</div></div>
+      <div class="glass pad stat rv"><div class="num">10 件</div><div class="lab">样品 4 组＋基线 2 件</div></div>
+      <div class="glass pad stat rv"><div class="num">IPX7</div><div class="lab">水深 / 实车姿态 / 全程不通电</div></div>
+      <div class="glass pad stat rv"><div class="num">双组</div><div class="lab">红墨水示踪 ＋ 盐水判失效</div></div>
+    </div>
+    <div class="grid2" style="margin-top:24px;">
+      <div class="glass pad card rv"><h3>验证假设</h3><ul class="tick">
+        <li><b>H1</b> 密封失效：端子间隙毛细渗入</li>
+        <li><b>H2</b> 灌封缺陷 / 外壳合模缝：水分直入腔体</li>
+        <li><b>H3</b> NTF 件密封已退化：渗入率高于新件</li></ul></div>
+      <div class="glass pad card rv" data-ui><h3>检出组合 → 结论（点击揭示）</h3>
+        <div class="verdict" id="verdict">
+          <div class="glass vitem"><span class="q">双组均检出</span><span class="a">路径成立且致害（路径 A：经接插口到达 PCB）</span></div>
+          <div class="glass vitem"><span class="q">仅红墨水检出</span><span class="a">路径存在，结合腐蚀定性</span></div>
+          <div class="glass vitem"><span class="q">仅盐水失效</span><span class="a">排查灌封 / 合模缝或其他原因</span></div>
+          <div class="glass vitem"><span class="q">两组均未检出</span><span class="a">转向接触电阻方向</span></div>
+        </div>
+        <div class="vhint">计划：D1–D6 闭环：配液登记 → 72h 浸泡 → 湿态检查 → 复测＋解剖分析 → 路径归类（A/B/C）→ 实验报告</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 8 工艺对比 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">专项攻坚 · 02</div>
+    <h2 class="ht rv">镭雕版 vs 易宏 / 华瑞工艺——<span class="hl">一个前置、两个延后、一个合并</span></h2>
+    <table class="cmp rv" style="margin-top:20px;">
+      <tr><th>优化项</th><th>镭雕版做法</th><th>易宏 / 华瑞痛点</th></tr>
+      <tr class="rv"><td>前置：二维码镭雕</td><td>第 1 步镭雕上盖，追溯链贯穿烧录 / 校准 / 入库全流程</td><td>易宏第 13 步才绑码，前 12 道工序无追溯码关联，靠末段补绑</td></tr>
+      <tr class="rv"><td>延后①：分板时机</td><td>校准测试后再分板，八拼板批量烧录＋校准，免逐板扫码</td><td>易宏第 2 步即分板，单板进 DIP 逐板操作效率低</td></tr>
+      <tr class="rv"><td>延后②：装上盖</td><td>灌胶后装盖，灌胶质量可视检＋静置 8h 写进基线</td><td>易宏灌胶前装盖，灌胶后不可视检，且未明确静置标准</td></tr>
+      <tr class="rv"><td>合并：DIP 工序</td><td>5 道 → 2 道：插件波峰焊＋焊点全检，兼顾特殊特性管控</td><td>易宏拆 5 道细分（上下板/插件/炉前检/波峰焊/炉后检），粒度冗余</td></tr>
+    </table>
+    <div class="glass pad card rv" style="margin-top:20px;"><p><b style="color:var(--accent)">沉淀：</b>铅酸计量板 SIE 基线 V1（易宏 PPAP 全量萃取）· 工艺参数基线（波峰焊 260–275℃ / 灌胶 AB 5:1）· 华瑞二供路试不合格案例卡</p></div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 9 日常运营 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">岗位与融入 · 运营</div>
+    <h2 class="ht rv">日常运营——<span class="hl">把每个环节做成可追溯的动作</span></h2>
+    <div class="grid2" style="margin-top:30px;">
+      <div class="glass pad card rv"><h3>PPAP 与审核</h3><ul class="tick">
+        <li>易宏 PPAP 资料完整萃取归档（P0 / P1 级）</li>
+        <li>输出控制器 / 电机 PPAP 审核关注点清单</li>
+        <li>供应商变更控制程序审核意见闭环</li></ul></div>
+      <div class="glass pad card rv"><h3>四新件 ESO 跟踪</h3><ul class="tick">
+        <li>25X02-Mz5 等项目四新件清单逐项跟踪</li>
+        <li>ESO 达成率 ≥98% 目标下的审核池管理</li>
+        <li>新供应商 ESO 流程对齐（22 项交付物）</li></ul></div>
+      <div class="glass pad card rv"><h3>绩效与扣款测算</h3><ul class="tick">
+        <li>Q2 供应商扣款测算：80 家 × 三维度</li>
+        <li>DPPM / IQC 批次合格率 / 退货率，匹配 A1-A3</li>
+        <li>输出扣款等级看板与测算结果表</li></ul></div>
+      <div class="glass pad card rv"><h3>EPC 推进与稽查筛查</h3><ul class="tick">
+        <li>铁件 / 覆件组 EPC 推进状态全景分析</li>
+        <li>W35 PPM vs DPPM 排序，定位高风险供应商</li>
+        <li>下半年 EPC 稽查 10 家名单建议</li></ul></div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 10 AI 知识库 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">AI 赋能 · 03</div>
+    <h2 class="ht rv">九号工作知识库——<span class="hl">2,300+ 文件的部门公共大脑</span></h2>
+    <div class="grid3" style="margin-top:24px;">
+      <div class="glass pad stat rv"><div class="num">15</div><div class="lab">标准知识域</div></div>
+      <div class="glass pad stat rv"><div class="num">2,341</div><div class="lab">文件 · 266 目录</div></div>
+      <div class="glass pad stat rv"><div class="num">≈1GB</div><div class="lab">2026.8.15 移交资料重建</div></div>
+    </div>
+    <div class="grid2" style="margin-top:26px;">
+      <div class="glass pad card rv"><h3>双区管理架构</h3><ul class="tick">
+        <li><b>work 整理 / 修改区：</b>新资料先整理、校验、去重</li>
+        <li><b>outputs 发布 / 检索区：</b>管理规则＋全局索引＋更新日志</li>
+        <li>知识卡片库（KC 编号可检索）</li></ul></div>
+      <div class="glass pad card rv"><h3>覆盖范围（文件数）</h3><ul class="tick">
+        <li>工作框架与体系 1,467 · 品类技术 313</li>
+        <li>质量攻关 193 · 质量标准 127</li>
+        <li>经验案例 73 · ESO 工作流 48 …</li></ul></div>
+    </div>
+    <div class="glass pad card rv" style="margin-top:26px;"><p><b style="color:var(--accent)">价值：</b>知识从「个人电脑」变「部门资产」——检索秒级响应 · 结论可追溯（锚定文件 / 版本 / 日期）· 新人一周掌握工作框架与案例库</p></div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 11 Q野机器人 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">AI 赋能 · 03</div>
+    <h2 class="ht rv">飞书机器人「Q野」——<span class="hl">接收即归档，随问即答</span></h2>
+    <div class="grid3" style="margin-top:28px;">
+      <div class="glass pad card rv"><h3>1 · 知识库问答</h3><p>自然语言检索 15 个知识域，秒级定位标准 / 案例 / 参数</p></div>
+      <div class="glass pad card rv"><h3>2 · 文件自动归档</h3><p>飞书接收文件 → 查重 → 智能判断归属知识域 → 自动归位</p></div>
+      <div class="glass pad card rv"><h3>3 · PPAP 审核辅助</h3><p>22 项交付物核对 + 品类关注点提示（控制器 / 电机 / 计量板）</p></div>
+    </div>
+    <div class="grid2" style="margin-top:28px;">
+      <div class="glass pad card rv"><h3>4 · 数据报告推送</h3><p>Excel → 分析 → 网页看板，报告一键回传飞书</p></div>
+      <div class="glass pad card rv"><h3>5 · 待办与异常提醒</h3><p>会议 / 待办 / 异常单到期提醒</p></div>
+    </div>
+    <div class="glass pad card rv" style="margin-top:28px;"><p><b style="color:var(--accent)">工程化：</b>15 个飞书技能完成 DeepSeek Harness 适配（日程 / 会议 / 邮件 / 文档 / 表格 / 待办等），技能资产可复用可分享</p></div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 12 数据工作流 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">AI 赋能 · 03</div>
+    <h2 class="ht rv">从「做一次报告」到<span class="hl">「沉淀一个工作流」</span></h2>
+    <div class="grid3" style="grid-template-columns:repeat(5,1fr);gap:20px;margin-top:26px;">
+      <div class="glass pad card rv" style="text-align:center"><h3 style="color:var(--accent)">① 数据输入</h3><p>Excel / 飞书表格 / 台账</p></div>
+      <div class="glass pad card rv" style="text-align:center"><h3 style="color:var(--accent)">② 清洗提取</h3><p>多表合并 · 交叉校验</p></div>
+      <div class="glass pad card rv" style="text-align:center"><h3 style="color:var(--accent)">③ 分析建模</h3><p>PPM / DPPM / 排名 / 分级</p></div>
+      <div class="glass pad card rv" style="text-align:center"><h3 style="color:var(--accent)">④ 网页看板</h3><p>HTML 报告 · 图表联动</p></div>
+      <div class="glass pad card rv" style="text-align:center"><h3 style="color:var(--accent)">⑤ 归档知识库</h3><p>沉淀可检索资产</p></div>
+    </div>
+    <div class="grid2" style="margin-top:28px;">
+      <div class="glass pad card rv"><h3>实绩产出</h3><ul class="tick">
+        <li><b>Q2 供应商扣款测算报告：</b>80 家绩效全量提取 → 三维度测算 → 等级看板</li>
+        <li><b>EPC W35 管控看板：</b>PPM 趋势 vs DPPM 目标，供应商从高到低排序</li>
+        <li><b>3MIS 全景分析报告：</b>3,651 工单自动出 20+ 图表，报告当日出稿</li>
+        <li><b>流程图与文档自动生成：</b>SOP 改一处逻辑即自动重出 V1.2 / V1.3</li></ul></div>
+      <div class="glass pad card rv"><h3>效率（AI 实践演示口径）</h3>
+        <div class="stat" style="padding:16px 0"><div class="num" style="font-size:44px">20min → 1min</div><div class="lab">供应商尽调（95%）</div></div>
+        <div class="stat" style="padding:16px 0"><div class="num" style="font-size:44px">30min → 2min</div><div class="lab">售后质量汇总（93%）</div></div>
+        <div class="stat" style="padding:16px 0"><div class="num" style="font-size:44px">100%</div><div class="lab">数据同步 / ESO 审核自动化</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 13 建设性意见 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">建设性意见 · 04</div>
+    <h2 class="ht rv">对部门工作的一条建议——<span class="hl">用 AI 插件带动部门 AI 使用效率</span></h2>
+    <div class="grid3" style="margin-top:30px;">
+      <div class="glass pad card rv"><h3>01 建议：AI 插件平台化</h3><p>用 AI 开发实用插件（检索 / 看板 / 预警 / 审核辅助），让每位同事都有用得上的工具</p></div>
+      <div class="glass pad card rv"><h3>02 载体：DeepSeek Harness</h3><p>插件统一部署：一处安装，全员即装即用；技能资产可复用、可分享、可迭代</p></div>
+      <div class="glass pad card rv"><h3>03 推广：高频小场景切入</h3><p>文件归档 / 报告生成 / 数据看板先行，低门槛上手，先尝到甜头</p></div>
+      <div class="glass pad card rv"><h3>04 习惯：默认工作入口</h3><p>查标准 / 出报告 / 发提醒都走 AI 插件，形成肌肉记忆，像用飞书一样自然</p></div>
+      <div class="glass pad card rv"><h3>05 带动：以点带面提效</h3><p>个人实践：尽调 20min→1min、汇总 30min→2min、同步全自动；「Q野」＋15 个飞书技能已验证</p></div>
+      <div class="glass pad card rv"><h3>06 愿景：部门 AI 文化</h3><p>人人有插件、事事有沉淀，经验资产化，效率持续复利，从三电组走向全部门</p></div>
+    </div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+<!-- 14 反思规划 + 致谢 -->
+<section class="slide">
+  <div class="ambient"></div>
+  <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
+  <div class="content">
+    <div class="chap rv">反思与规划 · 05</div>
+    <h2 class="ht rv">反思与 <span class="hl">2026 H2 行动计划</span></h2>
+    <div class="grid2" style="margin-top:24px;">
+      <div class="glass pad card rv"><h3>✅ 已验证</h3><ul class="tick">
+        <li>AI 工作流个人效率已验证：报告 / 看板 / 文档自动化</li>
+        <li>知识库 + 机器人可被同事直接复用，团队化推广</li></ul></div>
+      <div class="glass pad card rv"><h3>🔧 待补强</h3><ul class="tick">
+        <li>跨部门（售后 / 研发 / 供应商）协同推进节奏仍需加强</li>
+        <li>计量板硬件设计深度不足——下一步跟研原理图与失效件电路级分析</li></ul></div>
+    </div>
+    <div class="grid3" style="margin-top:24px;">
+      <div class="glass pad card rv"><h3>近期 9–10 月</h3><ul class="tick"><li>8 项改善待办 100% 闭环</li><li>NTF 率：易宏 &lt;60% / 华瑞 &lt;50%</li><li>AI 实用插件的规划和上线</li></ul></div>
+      <div class="glass pad card rv"><h3>中期 11–12 月</h3><ul class="tick"><li>3MIS 趋势扭转回落至 0.15%</li><li>易宏 65V 平台化项目按期达产</li><li>知识库＋Q野推广至三电组全员</li></ul></div>
+      <div class="glass pad card rv"><h3>远期 2027 H1</h3><ul class="tick"><li>从助理 SQE 成长为品类 Owner</li></ul></div>
+    </div>
+    <div class="glass pad card rv" style="margin-top:26px;text-align:center;"><p style="font-size:26px;color:var(--ink)">感谢王可欣师父带教与团队支持——<b style="color:var(--accent)">干得好，更要让经验沉淀下来、传播出去。</b></p></div>
+  </div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
+</section>
+
+</div></div>
+<script src="samples/particles.js"></script>
+<script>
+/* ---------- 固定舞台缩放 ---------- */
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);var st=document.getElementById('stage');
+  st.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
+addEventListener('resize',fit);fit();
+
+/* ---------- 页面与逐项推进 ---------- */
+var slides=[].slice.call(document.querySelectorAll('.slide'));
+var cur=0, locks=false;
+function show(i, revealAll){
+  slides[cur].classList.remove('active');
+  cur=i; var s=slides[cur];
+  s.classList.add('active');
+  var items=[].slice.call(s.querySelectorAll('.rv'));
+  items.forEach(function(el,k){ if(revealAll){el.classList.add('on');} else {el.classList.remove('on');} });
+  if(!revealAll && items.length) items[0].classList.add('on');
+  updatePg();
+  if(s.id==='game' && !revealAll) Game.reset();
+}
+function rvCount(){var s=slides[cur];return s.querySelectorAll('.rv').length;}
+function rvOn(){var s=slides[cur];return s.querySelectorAll('.rv.on').length;}
+function next(){
+  if(locks) return;
+  if(rvOn()<rvCount()){ var items=slides[cur].querySelectorAll('.rv'); items[rvOn()].classList.add('on'); return; }
+  if(cur<slides.length-1) show(cur+1,false);
+}
+function prev(){ if(locks) return; if(cur>0) show(cur-1,true); }
+function updatePg(){
+  var n=cur; // 序章与封面不计数
+  var content=Math.max(0,cur-1), total=slides.length-2;
+  var txt=cur<=1?'':(content+' / '+total);
+  [].forEach.call(document.querySelectorAll('.pg'),function(e){e.textContent='';});
+  var f=slides[cur].querySelector('.pg'); if(f) f.textContent=txt;
+}
+/* 控件区不触发翻页 */
+document.querySelectorAll('[data-ui]').forEach(function(el){
+  el.addEventListener('click',function(e){e.stopPropagation();});
+  el.addEventListener('wheel',function(e){e.stopPropagation();}, {passive:true});
+  el.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+});
+/* 键盘 */
+addEventListener('keydown',function(e){
+  if(e.key===' '||e.key==='ArrowRight'||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+  else if(e.key==='Home'){show(1,true);} else if(e.key==='End'){show(slides.length-1,true);}
+});
+/* 滚轮：累计阈值 + 手势锁 */
+var wAcc=0, wLock=0;
+addEventListener('wheel',function(e){
+  var now=Date.now(); if(now<wLock) return;
+  wAcc+=e.deltaY;
+  if(Math.abs(wAcc)>140){ wAcc>0?next():prev(); wAcc=0; wLock=now+800; }
+},{passive:true});
+/* 触屏滑动 */
+var tx=0;
+addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+addEventListener('touchend',function(e){
+  var dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>60){ dx<0?next():prev(); }
+},{passive:true});
+
+/* ---------- 序章粒子 → 封面 ---------- */
+function toCover(){ show(1,false); }
+new FangcunIntro({canvas:document.getElementById('intro'),text:'AI 杠杆',color:'#2b3a55',onDone:toCover});
+document.getElementById('enterBtn').addEventListener('click',function(){ show(2,false); });
+
+/* ---------- 流程推进器：带教四步 ---------- */
+(function(){
+  var data=[
+    {t:'① SQE 角色入门',p:'SQE 四大工作模块：ESO 新品 / 二供开发、售后质量 / VAVE 降本 ＋ 绩效指标全景地图。'},
+    {t:'② 核心流程掌握',p:'APQP → PPAP 22 项审核 · 8D 质量攻关与闭环 · 四新件 / 变更管理跟踪 · 供应商过程审核跟学。'},
+    {t:'③ 品类专业技能',p:'计量板原理 / 采样电路 · 失效解析 X1–X5 定性 · 实车仲裁与 NTF 判定 · GB42295 法规要求。'},
+    {t:'④ 独立实战闭环',p:'异常单闭环与升级 · 高风险供应商日会汇报 · 审核 / 会议实战 · 独立对接华瑞 / 易宏。'}
+  ];
+  var flow=document.getElementById('flow');
+  flow.addEventListener('click',function(e){
+    var n=e.target.closest('.fnode'); if(!n) return;
+    [].forEach.call(flow.children,function(c){c.classList.remove('cur');});
+    n.classList.add('cur');
+    var d=data[+n.dataset.i];
+    document.getElementById('fd-t').textContent=d.t;
+    document.getElementById('fd-p').textContent=d.p;
+  });
+  document.getElementById('fd-t').textContent=data[0].t;
+  document.getElementById('fd-p').textContent=data[0].p;
+})();
+
+/* ---------- 检出组合点击揭示 ---------- */
+document.getElementById('verdict').addEventListener('click',function(e){
+  var v=e.target.closest('.vitem'); if(!v) return;
+  v.classList.toggle('open');
+});
+
+/* ---------- 判断挑战游戏 ---------- */
+var Game=(function(){
+  var qs=[
+    {q:'台架上位机测试 PASS，装车路试故障未复现，拆检未见器件损坏。工单应判为？',a:2,
+     why:'上位机 PASS + 实车不现 → NTF 无法复现（X3）。实车结果是最终仲裁，不能「PASS 即放行」。易宏 48.7% / 华瑞 35.5%。'},
+    {q:'拆机发现焊点开裂，补焊后故障消除，故障器件已定位。工单应判为？',a:0,
+     why:'已定位失效器件（C4/Q1、U5、焊点）→ 硬件真实故障（X1）。'},
+    {q:'工单描述 E18 通讯异常，间歇性出现，工况触发时才复现。工单应判为？',a:1,
+     why:'间歇性 / 工况触发的通讯问题 → 单线通讯异常（X2）。工单口径 E18 占 34.7%。'},
+    {q:'实车「无电量显示」，但计量板台架检测全部正常，最终发现是仪表问题。工单应判为？',a:3,
+     why:'实为仪表 / 线束 / 稳压电源问题 → 非计量板误判（X4）。华瑞占 22.7%，稳压电源每日校准即为 P0 待办。'},
+    {q:'来件板身标签脱落、丝印模糊，无法追溯生产批次信息。工单应判为？',a:4,
+     why:'无法追溯、无法归类 → 标签缺失 / 信息不全（X5）。易宏曾达 35.3%，前置镭雕二维码正是对策。'}
+  ];
+  var idx=0, score=0, locked=false;
+  var el=q=>document.getElementById(q);
+  function pad(){ var p=el('gprog'); p.innerHTML=''; qs.forEach(function(_,i){
+    var d=document.createElement('span'); d.className='gdot'+(i<idx?' done':''); p.appendChild(d); }); }
+  function render(){
+    pad(); locked=false;
+    el('gresult').style.display='none'; el('gmain').style.display='block';
+    el('gq').textContent='第 '+(idx+1)+' 题 · '+qs[idx].q;
+    el('gfeed').className='gfeed'; el('gfeed').textContent='';
+    el('gnext').style.display='none';
+    el('gscore').textContent='得分 '+score+' / 5';
+    var box=el('gopts'); box.innerHTML='';
+    ['X1 硬件真实故障','X2 单线通讯异常','X3 NTF 无法复现','X4 非计量板误判','X5 标签缺失'].forEach(function(t,i){
+      var b=document.createElement('div'); b.className='gopt'; b.textContent=t;
+      b.addEventListener('click',function(){ pick(i,b); });
+      box.appendChild(b);
+    });
+  }
+  function pick(i,btn){
+    if(locked) return; locked=true;
+    var opts=el('gopts').children;
+    [].forEach.call(opts,function(o){o.classList.add('lock');});
+    opts[qs[idx].a].classList.add('right');
+    var ok=i===qs[idx].a; if(ok) score++;
+    if(!ok) btn.classList.add('wrong');
+    var f=el('gfeed');
+    f.className='gfeed '+(ok?'ok':'no');
+    f.textContent=(ok?'✓ 正确。':'✗ 应选 '+opts[qs[idx].a].textContent+'。')+qs[idx].why;
+    el('gscore').textContent='得分 '+score+' / 5';
+    el('gnext').style.display='inline-block';
+    el('gnext').textContent= idx<qs.length-1?'下一题':'查看结果';
+  }
+  function nextQ(){
+    if(idx<qs.length-1){ idx++; render(); }
+    else{
+      el('gmain').style.display='none'; el('gresult').style.display='block'; pad();
+      el('gfinal').textContent='得分 '+score+' / '+qs.length;
+      el('gfinal').style.color= score>=4?'#10b981':(score>=2?'#e8b93c':'#ef4444');
+    }
+  }
+  function reset(){ idx=0; score=0; render(); }
+  el('gnext').addEventListener('click',nextQ);
+  el('gretry').addEventListener('click',reset);
+  el('grestart').addEventListener('click',reset);
+  reset();
+  return {reset:reset};
+})();
+
+/* 初始页码 */
+updatePg();
+</script>
+</body>
+</html>
