@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>方寸样页 · 海洋风</title>
+<style>
+:root { --stage-bg:#04252e; --slide-bg:#04252e; }
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+
+.ocean-bg{position:absolute;inset:0;background:
+  radial-gradient(1200px 700px at 70% -10%, rgba(94,214,196,.28), transparent 60%),
+  radial-gradient(900px 600px at 15% 110%, rgba(21,101,132,.55), transparent 65%),
+  linear-gradient(180deg,#05323f 0%,#04252e 55%,#031b22 100%);}
+.wave{position:absolute;left:-5%;width:110%;height:220px;border-radius:45%;opacity:.16;background:#7fe3d2;animation:drift 11s ease-in-out infinite alternate;}
+.wave.w2{bottom:-60px;height:280px;opacity:.1;animation-duration:16s;background:#9ff0e0;}
+.wave.w1{bottom:-120px;}
+@keyframes drift{from{transform:translateX(-3%) rotate(-1.2deg)}to{transform:translateX(3%) rotate(1.4deg)}}
+.wordmark{position:absolute;left:64px;top:52px;display:flex;align-items:center;gap:18px;z-index:5;}
+.wordmark .nine{font:900 44px/1 "Microsoft YaHei",sans-serif;color:#eafcf7;letter-spacing:2px;}
+.wordmark .nine em{font-style:normal;color:#5ed6c4;}
+.wordmark .sub{font:400 20px/1.4 "Microsoft YaHei",sans-serif;color:rgba(234,252,247,.65);border-left:1px solid rgba(234,252,247,.3);padding-left:18px;letter-spacing:3px;}
+.intro-hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font:300 22px/1 "Microsoft YaHei",sans-serif;color:rgba(234,252,247,.55);letter-spacing:6px;z-index:5;animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:.95}}
+.glass{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1380px;padding:96px 110px;border-radius:28px;
+  background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+  border:1px solid rgba(127,227,210,.28);box-shadow:0 30px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.18);
+  backdrop-filter:blur(14px);text-align:center;}
+.kicker{font:400 24px/1 "Microsoft YaHei",sans-serif;color:#5ed6c4;letter-spacing:12px;margin-bottom:42px;}
+h1.title{font:900 76px/1.35 "Microsoft YaHei",sans-serif;color:#f2fdfa;margin:0 0 34px;letter-spacing:2px;}
+h1.title .hl{color:#5ed6c4;}
+.meta{font:300 26px/1.8 "Microsoft YaHei",sans-serif;color:rgba(234,252,247,.72);letter-spacing:2px;}
+.enter{display:inline-block;margin-top:56px;padding:20px 74px;border-radius:999px;border:1px solid rgba(127,227,210,.6);
+  font:500 26px/1 "Microsoft YaHei",sans-serif;color:#032;letter-spacing:8px;background:linear-gradient(135deg,#7fe3d2,#5ed6c4);cursor:pointer;transition:transform .2s, box-shadow .2s;}
+.enter:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(94,214,196,.4);}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><div class="deck-stage" id="stage">
+  <section class="slide active" id="prologue">
+    <div class="ocean-bg"></div><div class="wave w1"></div><div class="wave w2"></div>
+    <div class="wordmark"><span class="nine">九<em>号</em></span><span class="sub">电动车事业部</span></div>
+    <canvas id="intro" width="1920" height="1080" style="position:absolute;inset:0;"></canvas>
+    <div class="intro-hint">点 击 散 开 · 再 次 聚 成 后 进 入</div>
+  </section>
+  <section class="slide" id="cover">
+    <div class="ocean-bg"></div><div class="wave w1"></div><div class="wave w2"></div>
+    <div class="wordmark"><span class="nine">九<em>号</em></span><span class="sub">电动车事业部</span></div>
+    <div class="glass">
+      <div class="kicker">试 用 期 工 作 总 结</div>
+      <h1 class="title">以 <span class="hl">AI</span> 为杠杆的<br>供应商质量管理实践</h1>
+      <div class="meta">欧阳光 · 助理SQE ｜ 供应链质量工程部 · 三电组<br>带教：王可欣 ｜ 2026.05 — 2026.09</div>
+      <div class="enter" id="enterBtn">进 入 汇 报</div>
+    </div>
+  </section>
+</div></div>
+<script src="particles.js"></script>
+<script>
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);var st=document.getElementById('stage');st.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
+addEventListener('resize',fit);fit();
+function toCover(){document.getElementById('prologue').classList.remove('active');document.getElementById('cover').classList.add('active');}
+new FangcunIntro({canvas:document.getElementById('intro'),text:'AI 杠杆',color:'#8fe8d8',onDone:toCover});
+document.getElementById('enterBtn').addEventListener('click',function(){/* 后续接正文 */});
+</script>
+</body>
+</html>
