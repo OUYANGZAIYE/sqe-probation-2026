@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>方寸样页 · 双色风</title>
+<style>
+:root { --stage-bg:#f7f2ea; --slide-bg:#f7f2ea; }
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+
+.paper{position:absolute;inset:0;background:#f7f2ea;}
+.gridline{position:absolute;background:rgba(24,22,18,.08);}
+.gl-h{left:0;width:100%;height:1px;}
+.gl-v{top:0;height:100%;width:1px;}
+.geo{position:absolute;right:150px;top:120px;width:300px;height:300px;border:1px solid rgba(24,22,18,.22);}
+.geo::after{content:'';position:absolute;right:-70px;bottom:-70px;width:150px;height:150px;background:#e8b93c;}
+.barline{position:absolute;left:150px;bottom:130px;width:420px;height:6px;background:linear-gradient(90deg,#e8b93c 0 120px,#181612 120px 100%);}
+.wordmark{position:absolute;left:64px;top:52px;display:flex;align-items:center;gap:18px;z-index:5;}
+.wordmark .nine{font:900 44px/1 "Microsoft YaHei",sans-serif;color:#181612;letter-spacing:2px;}
+.wordmark .nine em{font-style:normal;color:#e8b93c;}
+.wordmark .sub{font:400 20px/1.4 "Microsoft YaHei",sans-serif;color:rgba(24,22,18,.55);border-left:1px solid rgba(24,22,18,.25);padding-left:18px;letter-spacing:3px;}
+.intro-hint{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font:300 22px/1 "Microsoft YaHei",sans-serif;color:rgba(24,22,18,.5);letter-spacing:6px;z-index:5;animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.95}}
+#intro{position:absolute;inset:0;z-index:3;}
+.wrap{position:absolute;left:150px;top:290px;z-index:4;max-width:1350px;}
+.kicker{display:inline-block;font:500 22px/1 "Microsoft YaHei",sans-serif;color:#181612;background:#e8b93c;padding:12px 26px;letter-spacing:10px;margin-bottom:48px;}
+h1.title{font:900 92px/1.32 "Microsoft YaHei",sans-serif;color:#181612;margin:0 0 40px;letter-spacing:2px;}
+h1.title .hl{color:#fff;background:#181612;padding:0 18px;}
+.meta{font:300 26px/1.9 "Microsoft YaHei",sans-serif;color:rgba(24,22,18,.62);letter-spacing:2px;}
+.enter{display:inline-block;margin-top:52px;padding:20px 74px;border:2px solid #181612;font:500 26px/1 "Microsoft YaHei",sans-serif;color:#181612;letter-spacing:8px;background:transparent;cursor:pointer;transition:all .2s;}
+.enter:hover{background:#181612;color:#e8b93c;}
+</style>
+</head>
+<body>
+<div class="deck-viewport"><div class="deck-stage" id="stage">
+  <section class="slide active" id="prologue">
+    <div class="paper"></div>
+    <div class="gridline gl-h" style="top:33%"></div><div class="gridline gl-h" style="top:66%"></div>
+    <div class="gridline gl-v" style="left:25%"></div><div class="gridline gl-v" style="left:75%"></div>
+    <div class="wordmark"><span class="nine">九<em>号</em></span><span class="sub">电动车事业部</span></div>
+    <canvas id="intro" width="1920" height="1080"></canvas>
+    <div class="intro-hint">点 击 散 开 · 再 次 聚 成 后 进 入</div>
+  </section>
+  <section class="slide" id="cover">
+    <div class="paper"></div>
+    <div class="gridline gl-h" style="top:33%"></div><div class="gridline gl-h" style="top:66%"></div>
+    <div class="gridline gl-v" style="left:25%"></div><div class="gridline gl-v" style="left:75%"></div>
+    <div class="geo"></div><div class="barline"></div>
+    <div class="wordmark"><span class="nine">九<em>号</em></span><span class="sub">电动车事业部</span></div>
+    <div class="wrap">
+      <div class="kicker">试用期工作总结</div>
+      <h1 class="title">以 <span class="hl">AI</span> 为杠杆的<br>供应商质量管理实践</h1>
+      <div class="meta">欧阳光 · 助理SQE ｜ 供应链质量工程部 · 三电组<br>带教：王可欣 ｜ 2026.05 — 2026.09</div>
+      <div class="enter" id="enterBtn">进 入 汇 报</div>
+    </div>
+  </section>
+</div></div>
+<script src="particles.js"></script>
+<script>
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);var st=document.getElementById('stage');st.style.transform='translate('+((innerWidth-1920*s)/2)+'px,'+((innerHeight-1080*s)/2)+'px) scale('+s+')';}
+addEventListener('resize',fit);fit();
+function toCover(){document.getElementById('prologue').classList.remove('active');document.getElementById('cover').classList.add('active');}
+var intro = new FangcunIntro({canvas:document.getElementById('intro'),text:'AI 杠杆',onDone:toCover});
+// 双色风：近黑粒子，10% 用克制黄点缀
+(function(){var c=document.getElementById('intro'),x=c.getContext('2d');var n=0;var _f=x.fillRect.bind(x);x.fillRect=function(a,b,w,h){x.fillStyle=(n++%9===0)?'#e8b93c':'#181612';_f(a,b,w,h);};})();
+document.getElementById('enterBtn').addEventListener('click',function(){/* 后续接正文 */});
+</script>
+</body>
+</html>
