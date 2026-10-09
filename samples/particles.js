@@ -18,11 +18,11 @@
     var octx = off.getContext('2d');
     octx.fillStyle = '#fff';
     octx.textAlign = 'center'; octx.textBaseline = 'middle';
-    var size = W / Math.max(4, text.length) * 1.35;
+    var size = W / Math.max(4, text.length) * 1.5;
     octx.font = '900 ' + size + 'px "Noto Sans SC", "Microsoft YaHei", sans-serif';
     octx.fillText(text, W / 2, H / 2);
     var data = octx.getImageData(0, 0, W, H).data;
-    var gap = Math.max(5, Math.round(size / 46));
+    var gap = Math.max(4, Math.round(size / 58));
     for (var y = 0; y < H; y += gap) for (var x = 0; x < W; x += gap) {
       if (data[(y * W + x) * 4 + 3] > 128) parts.push(null);
     }
@@ -81,7 +81,7 @@
           // 鼠标附近的点不参与"是否聚齐"判定，避免指针悬停卡住进入
           var err = Math.abs(p.tx - p.x) + Math.abs(p.ty - p.y);
           if (push < 0.4 && err > 3) allIn = false;
-          ctx.fillRect(p.x + jx, p.y + jy, 2.6, 2.6);
+          ctx.fillRect(p.x + jx, p.y + jy, 3, 3);
         }
       }
       ctx.globalAlpha = 1;
