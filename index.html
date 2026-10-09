@@ -552,6 +552,12 @@ function show(i, revealAll){
   items.forEach(function(el,k){ if(revealAll){el.classList.add('on');} else {el.classList.remove('on');} });
   if(!revealAll && items.length) items[0].classList.add('on');
   updatePg();
+  /* 回到序章：重新激活动画；离开序章：暂停动画省资源 */
+  var introCanvas=document.getElementById('intro');
+  if(introCanvas && introCanvas.__fangcunIntro){
+    if(s.id==='prologue') introCanvas.__fangcunIntro.restart();
+    else introCanvas.__fangcunIntro.stop();
+  }
 }
 function rvCount(){var s=slides[cur];return s.querySelectorAll('.rv').length;}
 function rvOn(){var s=slides[cur];return s.querySelectorAll('.rv.on').length;}
