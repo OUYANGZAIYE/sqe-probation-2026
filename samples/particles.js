@@ -1,5 +1,6 @@
-/* 方寸样页共用：粒子文字序章（canvas 2D，无第三方依赖）
-   交互：成型 → 点击散开 → 完整重组后回调进入封面；支持键盘跳过与减弱动效后备 */
+/* 方寸序章：粒子文字（canvas 2D，无第三方依赖）
+   交互：成型 → 点击散开 → 完整重组后自动进入封面；散开过程中忽略连点；
+   支持键盘跳过与减弱动效后备 */
 (function () {
   'use strict';
   function ParticleIntro(opts) {
@@ -8,8 +9,8 @@
     var ctx = canvas.getContext('2d');
     ctx.fillStyle = opts.color || '#222';
     var W = canvas.width, H = canvas.height;
-    var pts = [], parts = [], mouse = { x: -9999, y: -9999 };
-    var phase = 'forming', t0 = performance.now(), scatterAt = 0, reformedOnce = false, done = false;
+    var parts = [], mouse = { x: -9999, y: -9999 };
+    var phase = 'forming', t0 = performance.now(), scatterAt = 0, formedOnce = false, done = false;
 
     // 采样文字像素点
     var off = document.createElement('canvas');
@@ -23,16 +24,19 @@
     var data = octx.getImageData(0, 0, W, H).data;
     var gap = Math.max(5, Math.round(size / 46));
     for (var y = 0; y < H; y += gap) for (var x = 0; x < W; x += gap) {
-      if (data[(y * W + x) * 4 + 3] > 128) pts.push({ x: x, y: y });
+      if (data[(y * W + x) * 4 + 3] > 128) parts.push(null);
     }
-    pts.forEach(function (p) {
-      parts.push({
-        tx: p.x, ty: p.y,
-        x: W / 2 + (Math.random() - 0.5) * W * 1.4,
-        y: H / 2 + (Math.random() - 0.5) * H * 1.4,
-        vx: 0, vy: 0, j: Math.random() * Math.PI * 2
-      });
-    });
+    parts = [];
+    for (var y2 = 0; y2 < H; y2 += gap) for (var x2 = 0; x2 < W; x2 += gap) {
+      if (data[(y2 * W + x2) * 4 + 3] > 128) {
+        parts.push({
+          tx: x2, ty: y2,
+          x: W / 2 + (Math.random() - 0.5) * W * 1.4,
+          y: H / 2 + (Math.random() - 0.5) * H * 1.4,
+          vx: 0, vy: 0, j: Math.random() * Math.PI * 2
+        });
+      }
+    }
 
     canvas.addEventListener('mousemove', function (e) {
       var r = canvas.getBoundingClientRect();
@@ -41,13 +45,13 @@
     });
     canvas.addEventListener('mouseleave', function () { mouse.x = mouse.y = -9999; });
     canvas.addEventListener('click', function () {
-      if (phase === 'formed' || phase === 'forming') {
-        phase = 'scattered'; scatterAt = performance.now();
-        parts.forEach(function (p) {
-          var a = Math.random() * Math.PI * 2, s = 6 + Math.random() * 14;
-          p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
-        });
-      }
+      if (done || phase === 'scattered') return; // 散开过程中忽略连点
+      phase = 'scattered'; scatterAt = performance.now();
+      if (opts.onScatter) opts.onScatter();
+      parts.forEach(function (p) {
+        var a = Math.random() * Math.PI * 2, s = 6 + Math.random() * 14;
+        p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
+      });
     });
     function skip() { if (!done) { done = true; onDone(); } }
     window.addEventListener('keydown', function (e) {
@@ -82,10 +86,11 @@
       }
       ctx.globalAlpha = 1;
       if (phase === 'reforming' && allIn) {
-        if (reformedOnce) { done = true; onDone(); return; }
-        reformedOnce = true; phase = 'formed';
+        // 重组完成：回到可交互状态（可再次点击散开），首次聚拢后通知宿主显示进入按钮
+        phase = 'formed';
+        if (!formedOnce) { formedOnce = true; if (opts.onFormed) opts.onFormed(); }
       }
-      if (phase === 'forming' && now - t0 > 6000) { reformedOnce = true; phase = 'formed'; }
+      if (phase === 'forming' && now - t0 > 6000) phase = 'formed';
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
