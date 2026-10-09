@@ -10,7 +10,7 @@
     ctx.fillStyle = opts.color || '#222';
     var W = canvas.width, H = canvas.height;
     var parts = [], mouse = { x: -9999, y: -9999 };
-    var phase = 'forming', t0 = performance.now(), scatterAt = 0, formedOnce = false, done = false;
+    var phase = 'forming', t0 = performance.now(), scatterAt = 0, formedOnce = false, done = false, running = false;
 
     // 采样文字像素点
     var off = document.createElement('canvas');
@@ -53,14 +53,39 @@
         p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
       });
     });
-    function skip() { if (!done) { done = true; onDone(); } }
+    function skip() { if (!done) { done = true; running = false; onDone(); } }
     window.addEventListener('keydown', function (e) {
       if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight' || e.key === 'PageDown') skip();
     });
     if (reduce) { skip(); return; }
 
+    function scatterAll() {
+      parts.forEach(function (p) {
+        var a = Math.random() * Math.PI * 2, s = 6 + Math.random() * 14;
+        p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
+      });
+    }
+    function drawStatic() {
+      ctx.clearRect(0, 0, W, H);
+      parts.forEach(function (p) { ctx.fillRect(p.tx, p.ty, 3, 3); });
+    }
+    function restart() {
+      phase = 'forming'; t0 = performance.now(); done = false;
+      parts.forEach(function (p) {
+        p.x = W / 2 + (Math.random() - 0.5) * W * 1.4;
+        p.y = H / 2 + (Math.random() - 0.5) * H * 1.4;
+        p.vx = 0; p.vy = 0;
+      });
+      if (reduce) { drawStatic(); return; }
+      if (running) return;
+      running = true;
+      requestAnimationFrame(frame);
+    }
+    function stop() { running = false; done = true; }
+    canvas.__fangcunIntro = { restart: restart, stop: stop };
+
     function frame(now) {
-      if (done) return;
+      if (done || !running) { running = false; return; }
       ctx.clearRect(0, 0, W, H);
       var allIn = true;
       for (var i = 0; i < parts.length; i++) {
@@ -91,8 +116,9 @@
         if (!formedOnce) { formedOnce = true; if (opts.onFormed) opts.onFormed(); }
       }
       if (phase === 'forming' && now - t0 > 6000) phase = 'formed';
-      requestAnimationFrame(frame);
+      if (running) requestAnimationFrame(frame); else running = false;
     }
+    running = true;
     requestAnimationFrame(frame);
   }
   window.FangcunIntro = ParticleIntro;
