@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -143,7 +143,8 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
   <div class="ambient"></div>
   <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
   <canvas id="intro" width="1920" height="1080"></canvas>
-  <div class="intro-hint">点 击 散 开 · 再 次 聚 成 后 进 入（空格跳过）</div>
+  <div class="intro-hint" id="introHint">点 击 粒 子 散 开 · 鼠标 可 拨 动 · 空 格 进 入</div>
+  <div class="enter" data-ui id="introEnter" style="position:absolute;left:50%;bottom:130px;transform:translateX(-50%);display:none;z-index:6;">进 入 汇 报</div>
 </section>
 
 <!-- 1 封面 -->
@@ -553,11 +554,13 @@ document.querySelectorAll('[data-ui]').forEach(function(el){
   el.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
 });
 /* 键盘 */
+/* 键盘：↑↓←→ / 空格 / PgUp / PgDn 均可翻页（capture 确保任何焦点下都响应） */
 addEventListener('keydown',function(e){
-  if(e.key===' '||e.key==='ArrowRight'||e.key==='PageDown'||e.key==='Enter'){e.preventDefault();next();}
-  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
-  else if(e.key==='Home'){show(1,true);} else if(e.key==='End'){show(slides.length-1,true);}
-});
+  var k=e.key;
+  if(k===' '||k==='Enter'||k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'){e.preventDefault();next();}
+  else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'){e.preventDefault();prev();}
+  else if(k==='Home'){show(1,true);} else if(k==='End'){show(slides.length-1,true);}
+},true);
 /* 滚轮：累计阈值 + 手势锁 */
 var wAcc=0, wLock=0;
 addEventListener('wheel',function(e){
@@ -575,7 +578,14 @@ addEventListener('touchend',function(e){
 
 /* ---------- 序章粒子 → 封面 ---------- */
 function toCover(){ show(1,false); }
-new FangcunIntro({canvas:document.getElementById('intro'),text:'AI 杠杆',color:'#2b3a55',onDone:toCover});
+new FangcunIntro({canvas:document.getElementById('intro'),text:'AI 杠杆',color:'#2b3a55',
+  onScatter:function(){var h=document.getElementById('introHint');h.textContent='正 在 重 组 · 可 反 复 玩';},
+  onFormed:function(){
+    document.getElementById('introHint').textContent='再 点 可 再 次 散 开 · 空 格 或 按 钮 进 入';
+    document.getElementById('introEnter').style.display='inline-block';
+  },
+  onDone:toCover});
+document.getElementById('introEnter').addEventListener('click',function(){toCover();});
 document.getElementById('enterBtn').addEventListener('click',function(){ show(2,false); });
 
 /* ---------- 流程推进器：带教四步 ---------- */
