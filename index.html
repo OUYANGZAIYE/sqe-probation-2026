@@ -2,12 +2,19 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
 <title>以 AI 为杠杆的供应商质量管理实践 · 欧阳光试用期工作总结</title>
+<meta name="description" content="欧阳光 · 助理SQE 试用期工作总结（2026.05–2026.10）：铅酸计量板 3MIS 归因、失效件解析 SOP、进水验证实验，以及九号知识库与飞书机器人「Q野」的 AI 赋能实践。">
+<meta property="og:title" content="以 AI 为杠杆的供应商质量管理实践 · 试用期工作总结">
+<meta property="og:description" content="3MIS 归因 · 失效件解析 SOP · AI 知识库与工作流 · 欧阳光 · 供应链质量工程部 三电组">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ouyangzaiye.github.io/sqe-probation-2026/">
+<meta property="og:image" content="https://ouyangzaiye.github.io/sqe-probation-2026/assets/logo/ninebot-dark.png">
 <link rel="icon" type="image/png" href="assets/logo/ninebot-dark.png">
 <style>
 :root{
   --stage-bg:#dfe7f2; --slide-bg:#dfe7f2;
-  --ink:#131c2c; --ink-soft:rgba(19,28,44,.66); --ink-faint:rgba(19,28,44,.45);
+  --ink:#131c2c; --ink-soft:rgba(19,28,44,.66); --ink-faint:rgba(19,28,44,.56);
   --accent:#2563eb; --accent2:#7c3aed;
   --glass:linear-gradient(135deg,rgba(255,255,255,.62),rgba(255,255,255,.30));
   --glass-line:rgba(255,255,255,.75);
@@ -107,32 +114,22 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
 .vitem.open{box-shadow:0 20px 50px rgba(37,99,235,.22);}
 .vhint{font-size:19px;color:var(--ink-faint);margin-top:14px;}
 
-/* 游戏 */
-.game{display:grid;grid-template-columns:760px 1fr;gap:36px;margin-top:6px;}
-.gcard{padding:40px 44px;}
-.gq{font-size:25px;font-weight:700;line-height:1.55;min-height:104px;}
-.gopts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
-.gopt{padding:15px 22px;border-radius:16px;border:1.5px solid rgba(37,99,235,.3);font-size:21px;font-weight:700;cursor:pointer;user-select:none;background:rgba(255,255,255,.5);transition:all .15s;}
-.gopt:hover{border-color:var(--accent);transform:translateY(-2px);}
-.gopt.sel{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
-.gopt.right{background:rgba(16,185,129,.16);border-color:#10b981;color:#065f46;}
-.gopt.wrong{background:rgba(239,68,68,.12);border-color:#ef4444;color:#991b1b;}
-.gopt.lock{pointer-events:none;}
-.gbtns{margin-top:18px;display:flex;gap:18px;align-items:center;}
-.gbtn{padding:12px 38px;border-radius:999px;font-size:21px;font-weight:700;letter-spacing:4px;cursor:pointer;user-select:none;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;}
-.gbtn.ghost{background:rgba(255,255,255,.55);color:var(--accent);border:1.5px solid rgba(37,99,235,.35);}
-.gscore{font-size:21px;color:var(--ink-faint);margin-left:auto;}
-.gfeed{margin-top:16px;padding:14px 22px;border-radius:16px;font-size:20px;line-height:1.55;display:none;}
-.gfeed.ok{display:block;background:rgba(16,185,129,.14);color:#065f46;}
-.gfeed.no{display:block;background:rgba(239,68,68,.1);color:#991b1b;}
-.gprog{display:flex;gap:10px;margin-bottom:20px;}
-.gdot{width:34px;height:8px;border-radius:4px;background:rgba(19,28,44,.14);}
-.gdot.done{background:var(--accent);}
-.gside{padding:36px 40px;}
-.gside h3{font-size:25px;margin:0 0 16px;color:var(--accent);}
-.gside li{margin-bottom:14px;}
-.gresult{text-align:center;padding:30px 0;}
-.gresult .big{font-size:60px;font-weight:900;color:var(--accent);}
+/* 键盘可达焦点 */
+.enter:focus-visible,.fnode:focus-visible,.vitem:focus-visible,#sopImg:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+
+/* 卡片内脚注块（口径注等） */
+.footnote{display:block;margin-top:14px;padding-top:12px;border-top:1px dashed rgba(19,28,44,.18);color:var(--ink-faint);font-size:17.5px;line-height:1.8;letter-spacing:.2px;}
+
+/* 灯箱关闭按钮与操作提示 */
+#lbClose{position:absolute;top:22px;right:32px;width:52px;height:52px;line-height:48px;text-align:center;color:#fff;font-size:30px;border:1px solid rgba(255,255,255,.55);border-radius:50%;cursor:pointer;user-select:none;background:rgba(255,255,255,.08);}
+#lbClose:hover{background:rgba(255,255,255,.22);}
+#lbHint{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:18px;letter-spacing:3px;pointer-events:none;}
+#lbImg{transition:transform .15s var(--ease);will-change:transform;cursor:grab;}
+#lbImg:active{cursor:grabbing;}
+
+/* 窄屏提示条 */
+.stage-hint{display:none;position:fixed;left:0;right:0;top:0;z-index:3000;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;text-align:center;padding:8px 12px;letter-spacing:1px;}
+@media (max-width:720px){.stage-hint{display:block;}}
 </style>
 </head>
 <body>
@@ -143,7 +140,7 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
   <div class="ambient"></div>
   <div class="wordmark"><img src="assets/logo/ninebot-dark.png" alt="ninebot 九号" data-ui><span class="sub">电动车事业部</span></div>
   <canvas id="intro" width="1920" height="1080"></canvas>
-  <div class="enter" data-ui id="introEnter" style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%);display:none;z-index:6;">进 入 汇 报</div>
+  <div class="enter" data-ui id="introEnter" tabindex="0" role="button" style="position:absolute;left:50%;bottom:110px;transform:translateX(-50%);display:none;z-index:6;">进 入 汇 报</div>
 </section>
 
 <!-- 1 封面 -->
@@ -154,9 +151,9 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
     <div class="kicker">试 用 期 工 作 总 结</div>
     <h1 class="title">以 <span class="hl">AI</span> 为杠杆的<br>供应商质量管理实践</h1>
     <div class="meta">欧阳光 · 助理SQE ｜ 供应链质量工程部 · 三电组<br>带教师父：王可欣 ｜ 2026.05 — 2026.10</div>
-    <div class="enter" data-ui id="enterBtn">进 入 汇 报</div>
+    <div class="enter" data-ui id="enterBtn" tabindex="0" role="button">进 入 汇 报</div>
   </div>
-  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span id="pg-cover"></span></div>
+  <div class="footer"><span>九号知识库 <span class="dot">·</span> AI 辅助沉淀</span><span class="pg"></span></div>
 </section>
 
 <!-- 2 汇报框架 -->
@@ -223,10 +220,10 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
     <h2 class="ht rv">师父带领下：四步完成 <span class="hl">SQE 供应商质量入门</span></h2>
     <p class="subline rv">王可欣师父的带教方式：从「跟着看」→「一起做」→「独立干」——点击节点查看每一步</p>
     <div class="flow rv" data-ui id="flow" style="margin-top:34px;">
-      <div class="glass fnode cur" data-i="0"><span class="no">①</span><div class="ft">SQE 角色入门</div></div>
-      <div class="glass fnode" data-i="1"><span class="no">②</span><div class="ft">核心流程掌握</div></div>
-      <div class="glass fnode" data-i="2"><span class="no">③</span><div class="ft">品类专业技能</div></div>
-      <div class="glass fnode" data-i="3"><span class="no">④</span><div class="ft">独立实战闭环</div></div>
+      <div class="glass fnode cur" data-i="0" tabindex="0" role="button"><span class="no">①</span><div class="ft">SQE 角色入门</div></div>
+      <div class="glass fnode" data-i="1" tabindex="0" role="button"><span class="no">②</span><div class="ft">核心流程掌握</div></div>
+      <div class="glass fnode" data-i="2" tabindex="0" role="button"><span class="no">③</span><div class="ft">品类专业技能</div></div>
+      <div class="glass fnode" data-i="3" tabindex="0" role="button"><span class="no">④</span><div class="ft">独立实战闭环</div></div>
     </div>
     <div class="glass fdetail rv" data-ui id="fdetail">
       <h4 id="fd-t"></h4><p id="fd-p"></p>
@@ -250,7 +247,7 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
     </div>
     <div class="grid3" style="margin-top:16px;">
       <div class="glass pad card rv" style="padding:26px 34px"><h3>① 故障类型双驱动</h3><ul class="tick"><li>电量跳变 39.9% 居首</li><li>E18 通讯异常 34.7% · 无电量显示 14.0%</li><li>三类同步上升 → 系统性问题</li></ul></div>
-      <div class="glass pad card rv" style="padding:26px 34px"><h3>② 供应商分化明显</h3><ul class="tick"><li>易宏通讯类故障偏高：E18 占 54% · 无显示 59%</li><li>华瑞电量跳变 48% 接近易宏</li><li>华瑞份额 10月 25% → 3月 50%</li></ul></div>
+      <div class="glass pad card rv" style="padding:26px 34px"><h3>② 供应商分化明显</h3><ul class="tick"><li>易宏通讯类故障偏高：E18 占 54% · 无显示&nbsp;59%</li><li>华瑞电量跳变 48% 接近易宏</li><li>华瑞份额 10月 25% → 3月 50%</li></ul></div>
       <div class="glass pad card rv" style="padding:26px 34px"><h3>③ 典型早期失效特征</h3><ul class="tick"><li>中位故障里程 688km，37% 工单 500km 内失效</li><li>各产线同步上升 → 来料问题</li><li>峰值批次 W12–W14（26.03）</li></ul></div>
     </div>
     <div class="glass pad card rv" style="margin-top:16px;padding:22px 36px"><p><b style="color:var(--accent)">产出：</b>基于 CQE 售后台账明细（0906 拉取 · 5,564 条）的 12 维度交叉归因报告 ＋ P0 建议：四代板来料审核 · 易宏通讯专项 · 固件 0426 排查 · 广东区域分析</p></div>
@@ -267,7 +264,7 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
     <h2 class="ht rv">失效件解析 SOP——<span class="hl">全流程一张图（V1.2）</span></h2>
     <div style="display:grid;grid-template-columns:800px 1fr;gap:32px;margin-top:14px;height:726px;">
       <div class="glass rv" style="padding:14px;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;position:relative;height:100%;">
-        <img id="sopImg" src="assets/images/sop-flow-v12.png" alt="铅酸计量板 3MIS 件解析流程图 V1.2" style="max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;cursor:zoom-in;" data-ui title="点击放大">
+        <img id="sopImg" src="assets/images/sop-flow-v12.webp" alt="铅酸计量板 3MIS 件解析流程图 V1.2" style="max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;cursor:zoom-in;" data-ui tabindex="0" role="button" title="点击放大">
         <div style="position:absolute;bottom:26px;right:28px;font-size:17px;color:var(--ink-faint);">点击图片可放大</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px;justify-content:center;font-size:20px;">
@@ -321,7 +318,7 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
         <div class="glass pad card rv" style="padding:16px 22px"><h3 style="font-size:22px;margin-bottom:6px">④ 故障卡只有故障码</h3><p>三包故障卡仅登记「E18」，不记失效部位与复测数据；门店多不排查直接换件 → 根因信息丢失</p></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="glass rv" style="padding:12px;background:rgba(255,255,255,.92);"><img src="assets/images/sz_photo1.jpg" alt="NTF 返修件装车复测" style="height:238px;width:100%;object-fit:cover;border-radius:12px;" data-ui><div style="font-size:17px;color:var(--ink-faint);margin-top:8px;">装车复测：故障不复现（三包故障卡封样）</div></div>
+        <div class="glass rv" style="padding:12px;background:rgba(255,255,255,.92);"><img src="assets/images/sz_photo1.jpg" alt="NTF 返修件装车复测" style="height:238px;width:100%;object-fit:cover;object-position:center 30%;border-radius:12px;" data-ui><div style="font-size:17px;color:var(--ink-faint);margin-top:8px;">装车复测：故障不复现（三包故障卡封样）</div></div>
         <div class="glass rv" style="padding:12px;background:rgba(255,255,255,.92);"><img src="assets/images/sz_photo2.jpg" alt="接插口端子侵蚀" style="height:168px;width:100%;object-fit:cover;border-radius:12px;" data-ui><div style="font-size:17px;color:var(--ink-faint);margin-top:8px;">接插口端子：P- 口铜绿 · B- 口水渍</div></div>
       </div>
     </div>
@@ -350,11 +347,11 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
         <li><b>H3</b> NTF 件密封已退化：渗入率高于新件</li></ul></div>
       <div class="glass pad card rv" data-ui><h3>检出组合 → 结论（点击揭示）</h3>
         <div class="verdict" id="verdict">
-          <div class="glass vitem"><span class="q">双组均检出</span><span class="a">路径成立且致害（路径 A：经接插口到达 PCB）</span></div>
-          <div class="glass vitem"><span class="q">仅红墨水检出</span><span class="a">路径存在，结合腐蚀定性</span></div>
-          <div class="glass vitem"><span class="q">仅盐水失效</span><span class="a">排查灌封 / 合模缝或其他原因</span></div>
-          <div class="glass vitem"><span class="q">两组均未检出</span><span class="a">转向接触电阻方向</span></div>
-          <div class="glass vitem"><span class="q">NTF vs 新件对比</span><span class="a">渗入率 / 腐蚀更高 → 密封退化；相当 → 初始密封不足（H3 判定）</span></div>
+          <div class="glass vitem" tabindex="0" role="button"><span class="q">双组均检出</span><span class="a">路径成立且致害（路径 A：经接插口到达 PCB）</span></div>
+          <div class="glass vitem" tabindex="0" role="button"><span class="q">仅红墨水检出</span><span class="a">路径存在，结合腐蚀定性</span></div>
+          <div class="glass vitem" tabindex="0" role="button"><span class="q">仅盐水失效</span><span class="a">排查灌封 / 合模缝或其他原因</span></div>
+          <div class="glass vitem" tabindex="0" role="button"><span class="q">两组均未检出</span><span class="a">转向接触电阻方向</span></div>
+          <div class="glass vitem" tabindex="0" role="button"><span class="q">NTF vs 新件对比</span><span class="a">渗入率 / 腐蚀更高 → 密封退化；相当 → 初始密封不足（H3 判定）</span></div>
         </div>
         <div class="vhint">计划：D1–D6 闭环：样品登记与基线检查（X-ray / 工装）→ 40℃×72h 双槽浸泡 → 湿态检查（30min 内）→ 干燥复测＋解剖分析 → 路径归类（A/B/C）→ 实验报告</div>
       </div>
@@ -429,8 +426,9 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
       <div class="glass pad card rv" style="padding:28px 40px"><h3>实绩产出</h3><ul class="tick">
         <li><b>Q2 供应商扣款测算报告：</b>80 家绩效全量提取 → 三维度测算 → 等级看板</li>
         <li><b>EPC W35 管控看板：</b>PPM 趋势 vs DPPM 目标，供应商从高到低排序</li>
-        <li><b>3MIS 全景分析报告：</b>3,651 工单自动出 20+ 图表，报告当日出稿<span style="color:var(--ink-faint)">（口径注：两份报告均基于 CQE 售后台账导出数据——归因分析筛选「铅酸计量板×3mis×电动车」、窗口 25.10–26.06 共 5,564 件；全景 V2.0 数据截止 2026-07-31）</span></li>
-        <li><b>流程图与文档自动生成：</b>SOP 改一处逻辑即自动重出 V1.2 / V1.3</li></ul></div>
+        <li><b>3MIS 全景分析报告：</b>3,651 工单自动出 20+ 图表，报告当日出稿</li>
+        <li><b>流程图与文档自动生成：</b>SOP 改一处逻辑即自动重出 V1.2 / V1.3</li></ul>
+        <span class="footnote">口径注：两份报告均基于 CQE 售后台账导出数据——归因分析筛选「铅酸计量板 × 3mis × 电动车」、窗口 25.10–26.06 共 5,564 件；全景 V2.0 数据截止 2026-07-31。</span></div>
       <div class="glass pad card rv" style="padding:24px 40px"><h3>效率（AI 实践演示口径）</h3>
         <div class="stat" style="padding:8px 0"><div class="num" style="font-size:36px">20min → 1min</div><div class="lab">供应商尽调（95%）</div></div>
         <div class="stat" style="padding:8px 0"><div class="num" style="font-size:36px">30min → 2min</div><div class="lab">售后质量汇总（93%）</div></div>
@@ -502,10 +500,13 @@ h1.title .hl{background:linear-gradient(120deg,var(--accent),var(--accent2));-we
 
 
 </div></div>
-<!-- 流程图放大灯箱 -->
+<noscript><div style="position:fixed;inset:0;background:#dfe7f2;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:22px;color:#131c2c;text-align:center;padding:40px;line-height:1.8;">本演示由 HTML 幻灯片驱动，需要启用 JavaScript 才能观看。</div></noscript>
+<div class="stage-hint">本演示为 16:9 大屏设计 · 建议横屏或用电脑观看</div>
+<!-- 流程图放大灯箱：滚轮缩放 · 拖拽移动 · Esc / × 关闭 -->
 <div id="sopLightbox" style="position:fixed;inset:0;background:rgba(10,16,28,.90);z-index:2000;display:none;align-items:center;justify-content:center;cursor:zoom-out;">
-  <img src="assets/images/sop-flow-v12.png" alt="流程图放大" style="max-width:94%;max-height:94%;background:#fff;padding:14px;border-radius:14px;box-shadow:0 40px 120px rgba(0,0,0,.5);">
-  <div style="position:absolute;top:26px;right:40px;color:#fff;font-size:22px;letter-spacing:4px;">点 击 任 意 处 关 闭</div>
+  <img id="lbImg" src="assets/images/sop-flow-v12.webp" alt="流程图放大" style="max-width:94%;max-height:94%;background:#fff;padding:14px;border-radius:14px;box-shadow:0 40px 120px rgba(0,0,0,.5);">
+  <div id="lbClose" title="关闭 (Esc)">×</div>
+  <div id="lbHint">滚轮缩放 · 拖拽移动 · 点击任意处 / Esc 关闭</div>
 </div>
 <script src="samples/particles.js"></script>
 <script>
@@ -517,10 +518,25 @@ addEventListener('resize',fit);fit();
 /* ---------- 页面与逐项推进 ---------- */
 var slides=[].slice.call(document.querySelectorAll('.slide'));
 var cur=0, locks=false;
+/* ---------- URL 定位（#页码）与返回键支持 ---------- */
+var fromPop=false;
+function syncHash(i){
+  if(fromPop){ fromPop=false; try{ history.replaceState({i:i},'', '#'+(i+1)); }catch(err){} return; }
+  try{ history.pushState({i:i},'', '#'+(i+1)); }catch(err){} /* file:// 下静默降级 */
+}
+function hashIndex(){
+  var n=parseInt((location.hash||'').slice(1),10);
+  return (isNaN(n)||n<1||n>slides.length)?-1:n-1;
+}
+addEventListener('popstate',function(){
+  var i=hashIndex(); if(i<0) i=0; /* 返回到最前面：回序章 */
+  fromPop=true; show(i,true);
+});
 function show(i, revealAll){
   slides[cur].classList.remove('active');
   cur=i; var s=slides[cur];
   s.classList.add('active');
+  syncHash(i);
   var items=[].slice.call(s.querySelectorAll('.rv'));
   items.forEach(function(el,k){ if(revealAll){el.classList.add('on');} else {el.classList.remove('on');} });
   if(!revealAll && items.length) items[0].classList.add('on');
@@ -553,25 +569,30 @@ document.querySelectorAll('[data-ui]').forEach(function(el){
   el.addEventListener('wheel',function(e){e.stopPropagation();}, {passive:true});
   el.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
 });
-/* 键盘 */
-/* 键盘：↑↓←→ / 空格 / PgUp / PgDn 均可翻页（capture 确保任何焦点下都响应） */
+/* 键盘：↑↓←→ / 空格 / PgUp / PgDn 均可翻页（capture 确保任何焦点下都响应）；
+   灯箱打开时仅 Esc 关闭；焦点落在控件上时，空格/Enter 触发控件而非翻页 */
 addEventListener('keydown',function(e){
   var k=e.key;
+  if(lbOpen()){ if(k==='Escape') lbClose(); return; }
+  var ae=document.activeElement;
+  if((k===' '||k==='Enter')&&ae&&ae.matches&&ae.matches('.enter,.fnode,.vitem,#sopImg')){e.preventDefault();ae.click();return;}
   if(k===' '||k==='Enter'||k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'){e.preventDefault();next();}
   else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'){e.preventDefault();prev();}
   else if(k==='Home'){show(1,true);} else if(k==='End'){show(slides.length-1,true);}
 },true);
-/* 滚轮：累计阈值 + 手势锁 */
+/* 滚轮：累计阈值 + 手势锁；灯箱打开时不翻页（灯箱内滚轮=缩放） */
 var wAcc=0, wLock=0;
 addEventListener('wheel',function(e){
+  if(lbOpen()) return;
   var now=Date.now(); if(now<wLock) return;
   wAcc+=e.deltaY;
   if(Math.abs(wAcc)>140){ wAcc>0?next():prev(); wAcc=0; wLock=now+800; }
 },{passive:true});
-/* 触屏滑动 */
+/* 触屏滑动；灯箱打开时不翻页 */
 var tx=0;
 addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
 addEventListener('touchend',function(e){
+  if(lbOpen()) return;
   var dx=e.changedTouches[0].clientX-tx;
   if(Math.abs(dx)>60){ dx<0?next():prev(); }
 },{passive:true});
@@ -614,14 +635,44 @@ document.getElementById('verdict').addEventListener('click',function(e){
 });
 
 
-/* ---------- 流程图放大灯箱 ---------- */
+/* ---------- 流程图放大灯箱：滚轮缩放 · 拖拽平移 · Esc/×/点击关闭 ---------- */
 var lb=document.getElementById('sopLightbox');
-document.getElementById('sopImg').addEventListener('click',function(e){e.stopPropagation();lb.style.display='flex';});
-lb.addEventListener('click',function(){lb.style.display='none';});
-addEventListener('keydown',function(e){ if(e.key==='Escape') lb.style.display='none'; },true);
+var lbImg=document.getElementById('lbImg');
+var lbS=1, lbX=0, lbY=0, lbDrag=null, lbMoved=false;
+function lbOpen(){ return lb && lb.style.display!=='none'; }
+function lbApply(){ lbImg.style.transform='translate('+lbX+'px,'+lbY+'px) scale('+lbS+')'; }
+function lbClose(){ lb.style.display='none'; lbDrag=null; }
+function lbOpenImg(){ lb.style.display='flex'; lbS=1; lbX=0; lbY=0; lbApply(); }
+document.getElementById('sopImg').addEventListener('click',function(e){e.stopPropagation();lbOpenImg();});
+document.getElementById('lbClose').addEventListener('click',function(e){e.stopPropagation();lbClose();});
+lb.addEventListener('click',function(){ if(lbMoved){ lbMoved=false; return; } lbClose(); });
+/* 滚轮缩放（在灯箱内，不冒泡到翻页） */
+lb.addEventListener('wheel',function(e){
+  e.preventDefault(); e.stopPropagation();
+  lbS = e.deltaY<0 ? Math.min(4, lbS*1.18) : Math.max(1, lbS/1.18);
+  if(lbS===1){ lbX=0; lbY=0; }
+  lbApply();
+},{passive:false});
+/* 指针拖拽平移；拖动超过 6px 不视为关闭点击 */
+lbImg.addEventListener('pointerdown',function(e){
+  lbDrag={x:e.clientX,y:e.clientY,bx:lbX,by:lbY}; lbMoved=false;
+  try{ lbImg.setPointerCapture(e.pointerId); }catch(err){}
+});
+lbImg.addEventListener('pointermove',function(e){
+  if(!lbDrag) return;
+  var dx=e.clientX-lbDrag.x, dy=e.clientY-lbDrag.y;
+  if(Math.abs(dx)+Math.abs(dy)>6) lbMoved=true;
+  lbX=lbDrag.bx+dx; lbY=lbDrag.by+dy; lbApply();
+});
+lbImg.addEventListener('pointerup',function(){ lbDrag=null; });
+lbImg.addEventListener('pointercancel',function(){ lbDrag=null; });
 
-/* 初始页码 */
+/* 初始页码；URL 带 #页码 时直达该页（并跳过序章粒子） */
 updatePg();
+(function(){
+  var i=hashIndex();
+  if(i>0){ fromPop=true; show(i,true); }
+})();
 </script>
 
 </body>
